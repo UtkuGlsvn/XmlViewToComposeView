@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,7 +27,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,23 +56,35 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             XmlViewToComposeViewTheme {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp)
-                ) {
-                    XmlToButton("Android")
-                    XmlToTextview()
-                    XmlToImageView()
-                    XmlToGridView()
-                    XmlToHorizontalLine()
-                    XmlToLinearLayoutHorizontal()
-                    XmlToVerticalLine()
-                    XmlToLinearLayoutVertical()
-                    MyDialog()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    RecyclerViewContent(sampleData)
-                }
+                MainContent()
+            }
+        }
+    }
+}
+
+@Composable
+fun MainContent() {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            item { ComposeDialog() }
+            item { XmlToHorizontalLine() }
+            item { XmlToButton(name = "Composable") }
+            item { XmlToVerticalLine() }
+            item { XmlToTextview() }
+            item { XmlToImageView() }
+            item { IndeterminateProgressBar() }
+            item { CircularIndeterminateProgressBar() }
+            item { DeterminateProgressBar() }
+            item { XmlToLinearLayoutHorizontal() }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { XmlToLinearLayoutVertical() }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            items(sampleData) { item ->
+                RecyclerViewItem(item)
             }
         }
     }
@@ -100,10 +115,10 @@ fun XmlToTextview() {
 fun XmlToImageView() {
     Image(
         painter = painterResource(id = R.drawable.ic_launcher_foreground),
-        contentDescription = null,  // Use appropriate content descriptions for accessibility
+        contentDescription = null,
         modifier = Modifier
-            .clip(CircleShape)  // Apply a circular clip to the image
-        ,
+            .size(50.dp)
+            .clip(CircleShape),
         colorFilter = ColorFilter.tint(Color.Red)
     )
 
@@ -113,6 +128,7 @@ fun XmlToImageView() {
 fun XmlToGridView() {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(10.dp),
         content = {
             items(4) { index ->
                 Text("Item ${index + 1}")
@@ -125,8 +141,9 @@ fun XmlToGridView() {
 @Composable
 fun XmlToLinearLayoutHorizontal() {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Text("Horizontal Linear layout")
-        Text("Horizontal Linear layout")
+        Text("Horizontal Item")
+        Spacer(modifier = Modifier.width(5.dp))
+        Text("Horizontal Item")
     }
 }
 
@@ -135,7 +152,8 @@ fun XmlToLinearLayoutHorizontal() {
 fun XmlToLinearLayoutVertical() {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Vertical Linear layout")
-        Text("Vertical Linear layout")
+        Spacer(modifier = Modifier.height(5.dp))
+        Text("Vertical Linear layout 2")
     }
 }
 
@@ -174,9 +192,7 @@ fun XmlToHorizontalLine() {
 val sampleData = listOf(
     RecyclerViewItem("Item 1", 1),
     RecyclerViewItem("Item 2", 2),
-    RecyclerViewItem("Item 3", 3),
-    RecyclerViewItem("Item 3", 4),
-    RecyclerViewItem("Item 3", 5)
+    RecyclerViewItem("Item 3", 3)
 )
 
 
@@ -192,7 +208,7 @@ fun RecyclerViewContent(items: List<RecyclerViewItem>) {
 @Composable
 fun RecyclerViewItem(item: RecyclerViewItem) {
     Surface(
-        color = Color.Gray, modifier = Modifier
+        color = Color.LightGray, modifier = Modifier
             .padding(5.dp)
             .fillMaxSize()
     ) {
@@ -204,7 +220,7 @@ fun RecyclerViewItem(item: RecyclerViewItem) {
 }
 
 @Composable
-fun MyDialog() {
+fun ComposeDialog() {
     val showDialog = remember { mutableStateOf(false) }
 
     if (showDialog.value) {
@@ -227,12 +243,80 @@ fun MyDialog() {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    XmlViewToComposeViewTheme {
-        XmlToTextview()
+fun DeterminateProgressBar() {
+    val progress = remember { mutableStateOf(0.1f) }
+
+    Column(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        LinearProgressIndicator(
+            progress = progress.value,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Button(
+            onClick = {
+                if (progress.value < 1f) {
+                    progress.value += 0.1f // %10 artır
+                }
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text("Artır")
+        }
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewGridLayout() {
+    XmlToGridView()
+}
 
+@Composable
+fun IndeterminateProgressBar() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(5.dp)
+        )
+    }
+}
+
+@Composable
+fun CircularIndeterminateProgressBar() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(25.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMainContent() {
+    XmlViewToComposeViewTheme {
+        MainContent()
+    }
+}
